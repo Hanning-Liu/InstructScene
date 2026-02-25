@@ -41,7 +41,7 @@ You may also be interested in our other works:
 
 - **2025-07-31**: Unofficial pretrained checkpoints for dining and living rooms are provided by [@ydove0324](https://github.com/ydove0324). Thank you very much! Please download checkpoints [here🤗](https://huggingface.co/datasets/chenguolin/InstructScene_dataset/tree/main)。
 - **2025-07-27**: An extension of InstructScene, [InstructLayout](https://arxiv.org/abs/2407.07580) is accepted to T-PAMI 2025.
-- **2024-07-11**: Unofficial pretrained parameters of two-stage generative models are provided by [@arjuntheprogrammer](https://github.com/arjuntheprogrammer). Thank you very much! Please see [issue#9](https://github.com/chenguolin/InstructScene/issues/9) for more information.
+- **2024-07-11**: Unofficial pretrained checkpoints of two-stage generative models are provided by [@arjuntheprogrammer](https://github.com/arjuntheprogrammer). Thank you very much! Please see [issue#9](https://github.com/chenguolin/InstructScene/issues/9) for more information.
 - **2024-04-12**: Script for caption refinement by OpenAI ChatGPT is uploaded (sorry for the late update).
 - **2024-02-28**: The pretrained weights of fVQ-VAE are released.
 - **2024-02-28**: The source code and preprocessed dataset are released.
