@@ -5,6 +5,9 @@ import random
 import pickle
 from copy import deepcopy
 
+import src.warnings_boot as _warn_boot
+_warn_boot.suppress_cuda_autocast_no_cuda_warning()
+
 import numpy as np
 import torch
 from torch.utils.tensorboard import SummaryWriter
@@ -61,7 +64,7 @@ def main():
         "--device",
         type=str,
         default="0",
-        help="CUDA device to use for training"
+        help="GPU index for CUDA (e.g. 0); ignored on Apple MPS"
     )
 
     args = parser.parse_args()
@@ -70,15 +73,10 @@ def main():
     if args.seed is not None and args.seed >= 0:
         random.seed(args.seed)
         np.random.seed(args.seed)
-        torch.manual_seed(args.seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(args.seed)
+        seed_all_devices(args.seed)
         print(f"You have chosen to seed([{args.seed}]) the experiment")
 
-    if torch.cuda.is_available():
-        device = torch.device(f"cuda:{args.device}")
-    else:
-        device = torch.device("cpu")
+    device = resolve_torch_device(args.device)
     print(f"Run code on device [{device}]\n")
 
     # Check if `output_dir` exists and if it doesn't create it
@@ -184,7 +182,7 @@ def main():
         train_dataset,
         batch_size=config["training"]["batch_size"],
         num_workers=args.n_workers,
-        pin_memory=True,
+        pin_memory=dataloader_pin_memory(),
         collate_fn=train_dataset.collate_fn,
         shuffle=True
     )

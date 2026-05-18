@@ -102,7 +102,7 @@ def main():
         "--device",
         type=str,
         default="0",
-        help="Device to use for training"
+        help="GPU index for CUDA (e.g. 0); ignored on Apple MPS"
     )
     parser.add_argument(
         "--cfg_scale",
@@ -117,15 +117,10 @@ def main():
     if args.seed is not None and args.seed >= 0:
         random.seed(args.seed)
         np.random.seed(args.seed)
-        torch.manual_seed(args.seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(args.seed)
+        seed_all_devices(args.seed)
         print(f"You have chosen to seed([{args.seed}]) the experiment")
 
-    if torch.cuda.is_available():
-        device = torch.device(f"cuda:{args.device}")
-    else:
-        device = torch.device("cpu")
+    device = resolve_torch_device(args.device)
     print(f"Run code on device [{device}]\n")
 
     # Check if `ckpt_dir` exists

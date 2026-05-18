@@ -8,6 +8,7 @@ from src.data.threed_front import CachedRoom
 from src.data.threed_future_dataset import ThreedFutureDataset
 
 import os
+import shutil
 import tempfile
 import subprocess
 import textwrap
@@ -417,6 +418,15 @@ def _blender_binary_path() -> str:
 
     if os.path.exists("blender/blender-3.3.1-linux-x64/blender"):
         return "blender/blender-3.3.1-linux-x64/blender"
+
+    # Typical macOS install (drag-and-drop from blender.org .dmg)
+    mac_bundle = "/Applications/Blender.app/Contents/MacOS/Blender"
+    if os.path.exists(mac_bundle):
+        return mac_bundle
+
+    which_blender = shutil.which("blender")
+    if which_blender:
+        return which_blender
 
     raise EnvironmentError(
         "To render 3D models, install Blender version 3.3.1 or higher and "

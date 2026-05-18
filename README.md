@@ -59,21 +59,19 @@ You may also be interested in our other works:
 
 ## 🔧 Installation
 
-You may need to modify the specific version of `torch` in `settings/setup.sh` according to your CUDA version.
-There are not restrictions on the `torch` version, feel free to use your preferred one.
+**Linux + NVIDIA:** `settings/setup.sh` installs PyTorch with CUDA 12.1 wheels. Adjust the `torch` line there if you need a different CUDA build.
+
+**macOS (Apple Silicon / Intel):** the same script installs the standard macOS PyTorch wheels from PyPI (Metal **MPS** when your `torch` build supports it). Do not use the Linux CUDA wheel index on Mac.
+
+There are no strict restrictions on the `torch` version; use one that matches your platform.
+
 ```bash
 git clone https://github.com/chenguolin/InstructScene.git
 cd InstructScene
 bash settings/setup.sh
 ```
 
-Download the Blender software for visualization.
-```bash
-cd blender
-wget https://download.blender.org/release/Blender3.3/blender-3.3.1-linux-x64.tar.xz
-tar -xvf blender-3.3.1-linux-x64.tar.xz
-rm blender-3.3.1-linux-x64.tar.xz
-```
+Download Blender for visualization; see [blender/README.md](./blender/README.md) (Linux archive vs macOS `.dmg` / `BLENDER_PATH`).
 
 
 ## 📊 Dataset
@@ -83,13 +81,14 @@ Please refer to the instructions provided in their [official website](https://ti
 One can refer to the dataset preprocessing scripts in [ATISS](https://github.com/nv-tlabs/ATISS?tab=readme-ov-file#dataset) and [DiffuScene](https://github.com/tangjiapeng/DiffuScene?tab=readme-ov-file#dataset), which are similar to ours.
 
 We provide the preprocessed instruction-scene paired dataset used in the paper and rendered images for evaluation on [HuggingFace](https://huggingface.co/datasets/chenguolin/InstructScene_dataset).
-```python
-import os
-from huggingface_hub import hf_hub_url
-url = hf_hub_url(repo_id="chenguolin/InstructScene_dataset", filename="InstructScene.zip", repo_type="dataset")
-os.system(f"wget {url} && unzip InstructScene.zip")
-url = hf_hub_url(repo_id="chenguolin/InstructScene_dataset", filename="3D-FRONT.zip", repo_type="dataset")
-os.system(f"wget {url} && unzip 3D-FRONT.zip")
+```bash
+# Optional: Hugging Face mirror (e.g. mainland China): export HF_ENDPOINT=https://hf-mirror.com
+
+cd dataset
+hf download chenguolin/InstructScene_dataset InstructScene.zip --repo-type dataset --local-dir .
+hf download chenguolin/InstructScene_dataset 3D-FRONT.zip --repo-type dataset --local-dir .
+unzip -o InstructScene.zip
+unzip -o 3D-FRONT.zip
 ```
 
 Please refer to [dataset/README.md](./dataset/README.md) for more details.
@@ -107,7 +106,7 @@ We also provide many useful visualization functions in [src/utils/visualize.py](
 
 Note that:
 
-- All scripts in this project are executed in only one GPU. It takes 1~3 days to train the semantic graph prior or layout decoder on a single NVIDIA A40 GPU depending on the room type.
+- All scripts target a **single** accelerator (one CUDA GPU, or **Apple MPS**, or CPU). Training was originally benchmarked on one NVIDIA A40 (on the order of 1–3 days per room type). On Mac, expect longer runtimes and higher memory pressure; CPU is possible but very slow.
 
 - We use `TensorBoard` to track the training process by executing `tensorboard --logdir out/`.
 
@@ -118,14 +117,13 @@ During inference, to render syntheiszed scenes from instruction prompts, one nee
 
 #### Training
 We provide the pretrained weights of fVQ-VAE on [HuggingFace](https://huggingface.co/datasets/chenguolin/InstructScene_dataset). Our preprocessed dataset contains the original OpenShape features and **correspondingly quantization indices**.
-```python
-import os
-from huggingface_hub import hf_hub_url
-os.system("mkdir -p out/threedfront_objfeat_vqvae/checkpoints")
-url = hf_hub_url(repo_id="chenguolin/InstructScene_dataset", filename="threedfront_objfeat_vqvae_epoch_01999.pth", repo_type="dataset")
-os.system(f"wget {url} -O out/threedfront_objfeat_vqvae/checkpoints/epoch_01999.pth")
-url = hf_hub_url(repo_id="chenguolin/InstructScene_dataset", filename="objfeat_bounds.pkl", repo_type="dataset")
-os.system(f"wget {url} -O out/threedfront_objfeat_vqvae/objfeat_bounds.pkl")
+```bash
+# Optional: Hugging Face mirror (e.g. mainland China): export HF_ENDPOINT=https://hf-mirror.com
+
+mkdir -p out/threedfront_objfeat_vqvae/checkpoints
+hf download chenguolin/InstructScene_dataset threedfront_objfeat_vqvae_epoch_01999.pth --repo-type dataset --local-dir out/threedfront_objfeat_vqvae/checkpoints
+mv out/threedfront_objfeat_vqvae/checkpoints/threedfront_objfeat_vqvae_epoch_01999.pth out/threedfront_objfeat_vqvae/checkpoints/epoch_01999.pth
+hf download chenguolin/InstructScene_dataset objfeat_bounds.pkl --repo-type dataset --local-dir out/threedfront_objfeat_vqvae
 ```
 
 You can also train the fVQ-VAE from scratch. However, you should **update the quantization indices in the dataset** (stored in `dataset/InstructScene/threed_front_<room_type>/<scene_id>/models_info.pkl`) accordingly.

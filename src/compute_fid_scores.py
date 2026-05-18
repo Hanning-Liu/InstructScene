@@ -4,6 +4,7 @@ import time
 import random
 import shutil
 
+import numpy as np
 import torch
 from cleanfid import fid
 
@@ -49,7 +50,7 @@ def main():
     parser.add_argument(
         "--use_cpu",
         action="store_true",
-        help="Whether to use CPU or not"
+        help="Force CPU for FID/clean-fid (use if the default accelerator errors)"
     )
     parser.add_argument(
         "--use_ground_truth",
@@ -73,16 +74,11 @@ def main():
     if args.seed is not None and args.seed >= 0:
         random.seed(args.seed)
         np.random.seed(args.seed)
-        torch.manual_seed(args.seed)
-        if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(args.seed)
+        seed_all_devices(args.seed)
         print(f"You have chosen to seed([{args.seed}]) the experiment")
 
-    if not args.use_cpu:
-        device = torch.device("cuda")  # `fid` only supports cuda:0
-    else:
-        device = torch.device("cpu")
-    print(f"Run code on device [{'cpu' if args.use_cpu else 'cuda'}]\n")
+    device = resolve_fid_device(force_cpu=args.use_cpu)
+    print(f"Run code on device [{device}]\n")
 
     if not args.use_ground_truth:
         # Create an experiment directory using the `tag`

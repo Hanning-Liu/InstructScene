@@ -9,9 +9,18 @@ You can also provide the path to the Blender software by setting the environment
 
 The version used in this project is `3.3.1`.
 
+On **macOS** (Apple Silicon or Intel), install Blender from the `.dmg` (or zip) from the same LTS page; the code will use `/Applications/Blender.app/Contents/MacOS/Blender` when present, otherwise `blender` on your `PATH`, then `BLENDER_PATH`.
+
+## Linux (x86_64)
+
 ```bash
 cd blender
 wget https://download.blender.org/release/Blender3.3/blender-3.3.1-linux-x64.tar.xz
 tar -xvf blender-3.3.1-linux-x64.tar.xz
 rm blender-3.3.1-linux-x64.tar.xz
 ```
+
+## macOS
+
+1. Download Blender **3.3.x** for macOS from the [official LTS page](https://www.blender.org/download/lts/3-3/) (pick the build matching your CPU: Apple Silicon vs Intel).
+2. Install to `/Applications` (typical), **or** set `BLENDER_PATH` to the executable at `Blender.app/Contents/MacOS/Blender` inside the app bundle.

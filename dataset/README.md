@@ -2,13 +2,13 @@
 
 We provide the preprocessed instruction-scene paired dataset used in the paper and rendered images for evaluation on [HuggingFace](https://huggingface.co/datasets/chenguolin/InstructScene_dataset).
 These files should be downloaded, uncompressed, and put under this directory.
-```python
-import os
-from huggingface_hub import hf_hub_url
-url = hf_hub_url(repo_id="chenguolin/InstructScene_dataset", filename="InstructScene.zip", repo_type="dataset")
-os.system(f"wget {url} && unzip InstructScene.zip")
-url = hf_hub_url(repo_id="chenguolin/InstructScene_dataset", filename="3D-FRONT.zip", repo_type="dataset")
-os.system(f"wget {url} && unzip 3D-FRONT.zip")
+```bash
+# Optional: Hugging Face mirror (e.g. mainland China): export HF_ENDPOINT=https://hf-mirror.com
+
+hf download chenguolin/InstructScene_dataset InstructScene.zip --repo-type dataset --local-dir .
+hf download chenguolin/InstructScene_dataset 3D-FRONT.zip --repo-type dataset --local-dir .
+unzip -o InstructScene.zip
+unzip -o 3D-FRONT.zip
 ```
 
 Then, this directory should be organized as follows:

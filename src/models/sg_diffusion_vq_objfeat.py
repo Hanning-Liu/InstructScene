@@ -12,6 +12,13 @@ from .networks import *
 from src.utils.logger import StatsLogger
 
 
+def _log_softmax_class_logits(logits: Tensor, dim: int = 1) -> Tensor:
+    """Stable log_softmax: float64 on CUDA/CPU; MPS does not support float64."""
+    if logits.device.type == "mps":
+        return F.log_softmax(logits.float(), dim=dim)
+    return F.log_softmax(logits.double(), dim=dim).float()
+
+
 class SgObjfeatVQDiffusion(nn.Module):
     def __init__(self,
         num_objs: int,
@@ -516,9 +523,9 @@ class SgObjfeatVQDiffusion(nn.Module):
         assert out_o.shape[1] == self.num_objfeat_classes-1  # -1 for [mask] token
         assert out_o.shape[2:] == o_t.shape[1:]
 
-        log_pred_x = F.log_softmax(out_x.double(), dim=1).float()  # (B, Cx, N)
-        log_pred_e = F.log_softmax(out_e.double(), dim=1).float()  # (B, Ce, N*(N-1)/2)
-        log_pred_o = F.log_softmax(out_o.double(), dim=1).float()  # (B, Co, NK)
+        log_pred_x = _log_softmax_class_logits(out_x, dim=1)  # (B, Cx, N)
+        log_pred_e = _log_softmax_class_logits(out_e, dim=1)  # (B, Ce, N*(N-1)/2)
+        log_pred_o = _log_softmax_class_logits(out_o, dim=1)  # (B, Co, NK)
         batch_size = log_x_t.shape[0]
 
         if cfg_scale != 1.:

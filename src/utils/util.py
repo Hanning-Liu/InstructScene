@@ -15,6 +15,54 @@ except ImportError:
 import torch
 
 
+def mps_is_available() -> bool:
+    return bool(
+        getattr(torch.backends, "mps", None) is not None
+        and torch.backends.mps.is_available()
+    )
+
+
+def seed_all_devices(seed: int) -> None:
+    """Seed PyTorch CPU/CUDA/MPS (when present) for reproducibility."""
+    torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+    if mps_is_available() and hasattr(torch, "mps") and hasattr(torch.mps, "manual_seed"):
+        torch.mps.manual_seed(seed)
+
+
+def resolve_torch_device(cuda_device_index: str = "0") -> torch.device:
+    """Prefer CUDA (with index), else Apple MPS, else CPU."""
+    if torch.cuda.is_available():
+        return torch.device(f"cuda:{cuda_device_index}")
+    if mps_is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def resolve_fid_device(force_cpu: bool = False) -> torch.device:
+    """Device for clean-fid: CUDA if available, else MPS, else CPU (unless forced)."""
+    if force_cpu:
+        return torch.device("cpu")
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if mps_is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
+
+
+def dataloader_pin_memory() -> bool:
+    """Pinned memory helps CUDA transfers; MPS/CPU do not support it and warn if True."""
+    return torch.cuda.is_available()
+
+
+def configure_quiet_torch_warnings_for_non_cuda() -> None:
+    """Drop noisy UserWarnings on Apple MPS / CPU when code paths request CUDA autocast."""
+    from src import warnings_boot
+
+    warnings_boot.suppress_cuda_autocast_no_cuda_warning()
+
+
 # Copied from https://github.com/huggingface/pytorch-image-models/timm/data/loader.py
 class MultiEpochsDataLoader(torch.utils.data.DataLoader):
 
